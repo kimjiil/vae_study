@@ -111,9 +111,12 @@ class VAE(torch.nn.Module):
     def decode(self, x):
         return self.decoder(x)
 
-def loss_func(input, output, mu, std):
-    marginal_likelihood = torch.mean(torch.sum(input * torch.log(output) + (1-input) * torch.log(1-output), dim=(1, 2, 3)))
+bce_loss = torch.nn.BCELoss(reduction='mean')
 
+def loss_func(input, output, mu, std):
+    # marginal_likelihood = torch.mean(torch.sum(input * torch.log(output) + (1-input) * torch.log(1-output), dim=(1, 2, 3)))
+    marginal_likelihood = torch.mean(input * torch.log(output) + (1 - input) * torch.log(1 - output))
+    marginal_likelihood_ = bce_loss(output, input)
     kl_divergence = torch.mean(-0.5 * torch.sum((1 + torch.log(torch.square(std))) - torch.square(mu) - torch.square(std), dim=(1)))
     ELBO = marginal_likelihood - kl_divergence
     loss = -ELBO
